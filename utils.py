@@ -7,7 +7,7 @@ from email.header import Header
 encode = 'utf-8'
 
 
-def sendmail(sender, to, subject, contents, texttype='plain'):
+def sendmail(sender, to, subject, contents, texttype='html'):
     Charset.add_charset(encode, Charset.QP, Charset.QP, encode)
     msg = MIMEText(contents, texttype, encode)
     msg['Subject'] = Header(subject.encode(encode), encode).encode()
@@ -17,6 +17,8 @@ def sendmail(sender, to, subject, contents, texttype='plain'):
     s.set_debuglevel(False)
     s.ehlo('smtp.exmail.qq.com')
     s.login('fwm@caitc.cn', '1qaz@WSX')
+    import pandas
+    pandas.read_ex
     try:
         s.sendmail(sender, to, msg.as_string())
     finally:

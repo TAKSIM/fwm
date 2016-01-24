@@ -81,3 +81,30 @@ class NewHolPanel(QtGui.QDialog):
         self.cancel.clicked.connect(self.close)
         layout.addWidget(self.cancel,3,1,1,1)
         self.setLayout(layout)
+
+
+class ImportBalance(QtGui.QDialog):
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setWindowIcon(QtGui.QIcon('icons/tent.png'))
+        self.setWindowTitle(u'导入网银数据')
+        layout = QtGui.QGridLayout()
+        layout.addWidget(QtGui.QLabel(u'银行'),0,0,1,1)
+        self.banks = QtGui.QComboBox()
+        self.banks.addItems([u'建设银行', u'兴业银行'])
+        self.banks.setEditable(False)
+        layout.addWidget(self.banks,0,1,1,2)
+        self.selectFile = QtGui.QPushButton(u'文件')
+        self.selectFile.clicked.connect(self.getfile)
+        layout.addWidget(self.selectFile,1,0,1,1)
+        self.filename = QtGui.QLineEdit()
+        self.filename.setEnabled(True)
+        layout.addWidget(self.filename,1,1,1,2)
+        self.ok = QtGui.QPushButton(u'确定')
+        self.ok.clicked.connect(self.accept)
+        layout.addWidget(self.ok,2,2,1,1)
+        self.setLayout(layout)
+
+    def getfile(self):
+        fn = QtGui.QFileDialog.getOpenFileName(self, u'选择网银数据文件', '', 'Excel file (*.xls *.xlsx)')
+        self.filename.setText(fn)
