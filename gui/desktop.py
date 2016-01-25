@@ -16,14 +16,16 @@ class FwmDesktop(QtGui.QMainWindow):
             self.initFromDB()
             self.createAction()
             self.createMenu()
+            self.createSubLayouts()
 
             layout = QtGui.QHBoxLayout()
             self.treecontrol = TreeControl()
-            layout.addWidget(self.treecontrol)
-            layout.addWidget(self.acctInfoView)
             self.centralWidget = QtGui.QWidget()
-            self.centralWidget.setLayout(layout)
+            layout.addWidget(self.treecontrol)
+            layout.addWidget(self.centralWidget)
             self.setCentralWidget(self.centralWidget)
+            self.setLayout(layout)
+
             self.resize(800, 600)
             self.setWindowTitle(u'家族信托投资管理平台 - {0}'.format(self.user.name))
             self.statusBar().showMessage(u'准备就绪')
@@ -72,6 +74,29 @@ class FwmDesktop(QtGui.QMainWindow):
         self.maximize = QtGui.QAction(u'最大化',self, triggered=self.showMaximized)
         self.restore = QtGui.QAction(u'还原', self, triggered=self.showNormal)
 
+    def createSubLayouts(self):
+        # acct info layout
+        self.acctInfoLayout = QtGui.QGridLayout()
+        self.acctdatamodel = QtSql.QSqlQueryModel()
+        self.acctdatamodel.setQuery('SELECT a.acctname, a.start_date, r.rmname, m.mgtname from acct a left outer join rm r on r.id=a.rm left outer join mgt_type m on m.id=a.mgt_type')
+        self.acctdatamodel.setHeaderData(0, QtCore.Qt.Horizontal, u'账户')
+        self.acctdatamodel.setHeaderData(1, QtCore.Qt.Horizontal, u'起始日')
+        self.acctdatamodel.setHeaderData(2, QtCore.Qt.Horizontal, u'理财师')
+        self.acctdatamodel.setHeaderData(3, QtCore.Qt.Horizontal, u'管理类型')
+        self.acctInfoView = QtGui.QTableView()
+        self.acctInfoView.setSortingEnabled(True)
+        # self.acctInfoView.horizontalHeader().setSortIndicatorShown(True)
+        # self.acctInfoView.horizontalHeader().setSortIndicator(0, QtCore.Qt.DescendingOrder)
+        self.acctInfoView.setModel(self.acctdatamodel)
+        self.acctInfoView.resizeColumnsToContents()
+        self.acctInfoView.resizeRowsToContents()
+        self.acctInfoView.verticalHeader().hide()
+        self.acctInfoLayout.addLayout(self.acctInfoView,0,0,1,1)
+
+        # asset pool
+        self.assetPo
+
+
     def showHolidayPanel(self):
         from panel import HolidayPanel
         hol = HolidayPanel()
@@ -108,68 +133,43 @@ class FwmDesktop(QtGui.QMainWindow):
             self.workdays.append(q.value(0).toDate().toPyDate())
 
     def loadAccounts(self):
-        self.acctdatamodel = QtSql.QSqlQueryModel()
-        self.acctdatamodel.setQuery('SELECT a.acctname, a.start_date, r.rmname, m.mgtname from acct a left outer join rm r on r.id=a.rm left outer join mgt_type m on m.id=a.mgt_type')
-        self.acctdatamodel.setHeaderData(0, QtCore.Qt.Horizontal, u'账户')
-        self.acctdatamodel.setHeaderData(1, QtCore.Qt.Horizontal, u'起始日')
-        self.acctdatamodel.setHeaderData(2, QtCore.Qt.Horizontal, u'理财师')
-        self.acctdatamodel.setHeaderData(3, QtCore.Qt.Horizontal, u'管理类型')
-        self.acctInfoView = QtGui.QTableView()
-        self.acctInfoView.setSortingEnabled(True)
-        # self.acctInfoView.horizontalHeader().setSortIndicatorShown(True)
-        # self.acctInfoView.horizontalHeader().setSortIndicator(0, QtCore.Qt.DescendingOrder)
-        self.acctInfoView.setModel(self.acctdatamodel)
-        self.acctInfoView.resizeColumnsToContents()
-        self.acctInfoView.resizeRowsToContents()
-        self.acctInfoView.verticalHeader().hide()
-        # q = QtSql.QSqlQuery()
-        # q.exec_('SELECT * FROM ACCT')
-        # data=[]
-        # while q.next():
-        #     data.append([q.value(0).toString(),
-        #                  q.value(1).toString(),
-        #                  q.value(2).toDate().toPyDate(),
-        #                  q.value(3).toString(),
-        #                  q.value(4).toInt()[0],
-        #                  q.value(5).toString(),
-        #                  q.value(6).toString()])
-        # col = ['id', 'name', 'startdate', 'rm', 'mgttype', 'branch', 'acctno']
-        # self.accts = pd.DataFrame(data, columns=col)
+        q = QtSql.QSqlQuery('SELECT ID, RMNAME FROM RM')
+        self.rm = []
+        while q.next():
+            self.rm.append('%s(%s)'%(q.value(1).toString(), q.value(0).toString()))
+        q = QtSql.QSqlQuery('SELECT ID FROM ACCT')
+        self.accts = []
+        while q.next():
+            self.accts.append(q.value(0).toString())
 
     def loadTrades(self):
         self.balance = {}
 
 
-class TreeControl(QtGui.QWidget):
+class TreeControl(QtGui.QTreeWidget):
     def __init__(self):
-        QtGui.QWidget.__init__(self)
-        self.treeWidget = QtGui.QTreeWidget()
-        self.treeWidget.setHeaderHidden(True)
-        self.addItems(self.treeWidget.invisibleRootItem())
-        self.treeWidget.itemClicked.connect(self.handleClicked)
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(self.treeWidget)
-        self.setLayout(layout)
+        QtGui.QTreeWidget.__init__(self)
+        self.setHeaderHidden(True)
+        self.addItems(self.invisibleRootItem())
+        self.itemClicked.connect(self.handleClicked)
+        self.setMaximumWidth(120)
 
     def addItems(self, parent):
-        trades_item = self.addParent(parent, u'交易' )
-        accts_item = self.addParent(parent, u'账户')
-        rm_item = self.addParent(parent, u'理财师')
-
+        trades_item = self.addParent(parent, u'资产' )
         self.addChild(trades_item, u'交易明细')
+        self.addChild(trades_item, u'产品池')
 
-        q = QtSql.QSqlQuery('SELECT ID FROM ACCT')
-        while q.next():
-            self.addChild(accts_item, q.value(0).toString())
+        accts_item = self.addParent(parent, u'账户')
+        self.addChild(accts_item, u'基本信息')
+        self.addChild(accts_item, u'日历提醒')
 
-        q = QtSql.QSqlQuery('SELECT ID, RMNAME FROM RM')
-        while q.next():
-            self.addChild(rm_item, '%s(%s)' % (q.value(1).toString(), q.value(0).toString()))
+        rm_item = self.addParent(parent, u'理财师')
+        self.addChild(rm_item, u'基本信息')
 
     def addParent(self, parent, title):
         item = QtGui.QTreeWidgetItem(parent, [title])
         item.setChildIndicatorPolicy(QtGui.QTreeWidgetItem.ShowIndicator)
-        item.setExpanded(False)
+        item.setExpanded(True)
         return item
 
     def addChild(self, parent, title):
@@ -177,7 +177,7 @@ class TreeControl(QtGui.QWidget):
         return item
 
     def handleClicked(self, item):
-        print item.text(0)
+        pass
 
 if __name__ == '__main__':
     import sys
