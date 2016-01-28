@@ -16,15 +16,16 @@ class FwmDesktop(QtGui.QMainWindow):
             self.initFromDB()
             self.createAction()
             self.createMenu()
-            self.createSubLayouts()
+            self.createPageWidgets()
 
             layout = QtGui.QHBoxLayout()
-            self.treecontrol = TreeControl()
             self.centralWidget = QtGui.QWidget()
-            layout.addWidget(self.treecontrol)
-            layout.addWidget(self.centralWidget)
+            self.centralWidget.setLayout(layout)
             self.setCentralWidget(self.centralWidget)
-            self.setLayout(layout)
+            self.treecontrol = TreeControl()
+            self.treecontrol.clickSignal.connect(self.switchLayout)
+            layout.addWidget(self.treecontrol)
+            layout.addLayout(self.stackedLayout)
 
             self.resize(800, 600)
             self.setWindowTitle(u'家族信托投资管理平台 - {0}'.format(self.user.name))
@@ -74,9 +75,9 @@ class FwmDesktop(QtGui.QMainWindow):
         self.maximize = QtGui.QAction(u'最大化',self, triggered=self.showMaximized)
         self.restore = QtGui.QAction(u'还原', self, triggered=self.showNormal)
 
-    def createSubLayouts(self):
+    def createPageWidgets(self):
+        self.stackedLayout = QtGui.QStackedLayout()
         # acct info layout
-        self.acctInfoLayout = QtGui.QGridLayout()
         self.acctdatamodel = QtSql.QSqlQueryModel()
         self.acctdatamodel.setQuery('SELECT a.acctname, a.start_date, r.rmname, m.mgtname from acct a left outer join rm r on r.id=a.rm left outer join mgt_type m on m.id=a.mgt_type')
         self.acctdatamodel.setHeaderData(0, QtCore.Qt.Horizontal, u'账户')
@@ -91,11 +92,17 @@ class FwmDesktop(QtGui.QMainWindow):
         self.acctInfoView.resizeColumnsToContents()
         self.acctInfoView.resizeRowsToContents()
         self.acctInfoView.verticalHeader().hide()
-        self.acctInfoLayout.addLayout(self.acctInfoView,0,0,1,1)
+        self.stackedLayout.addWidget(self.acctInfoView)
 
         # asset pool
-        self.assetPo
+        self.assetPool = QtGui.QLabel(u'资产池')
+        self.stackedLayout.addWidget(self.assetPool)
 
+    def switchLayout(self, itemName):
+        if itemName == Qt.QString(u'基本信息'):
+            self.stackedLayout.setCurrentWidget(self.acctInfoView)
+        elif itemName == Qt.QString(u'产品池'):
+            self.stackedLayout.setCurrentWidget(self.assetPool)
 
     def showHolidayPanel(self):
         from panel import HolidayPanel
@@ -147,8 +154,9 @@ class FwmDesktop(QtGui.QMainWindow):
 
 
 class TreeControl(QtGui.QTreeWidget):
-    def __init__(self):
-        QtGui.QTreeWidget.__init__(self)
+    clickSignal = QtCore.pyqtSignal(str)
+    def __init__(self, parent=None):
+        QtGui.QTreeWidget.__init__(self, parent)
         self.setHeaderHidden(True)
         self.addItems(self.invisibleRootItem())
         self.itemClicked.connect(self.handleClicked)
@@ -177,7 +185,8 @@ class TreeControl(QtGui.QTreeWidget):
         return item
 
     def handleClicked(self, item):
-        pass
+        si = self.selectedItems()[0].text(0)
+        self.clickSignal.emit(si)
 
 if __name__ == '__main__':
     import sys
