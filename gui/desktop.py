@@ -2,9 +2,7 @@
 from login import LoginPage
 from user import User
 from PyQt4 import Qt, QtGui, QtCore, QtSql
-import numpy as np
-import pandas as pd
-
+import dataview
 
 class FwmDesktop(QtGui.QMainWindow):
     def __init__(self):
@@ -77,21 +75,20 @@ class FwmDesktop(QtGui.QMainWindow):
 
     def createPageWidgets(self):
         self.stackedLayout = QtGui.QStackedLayout()
+        # trade detail layout
+        q1 = 'SELECT BOOK, TRADE_DATE, SETTLE_DATE, PROD_ID, SHARE_CLASS, PRICE, AMOUNT, COMMENT, TRADE_ID FROM TRADE'
+        headers1 = [u'账户', u'交易日', u'交割日', u'代码', u'类型', u'价格', u'数量', u'备注', u'识别码']
+        self.tradedatamodel = dataview.QueryTableModel(q1, headers1)
+        self.tradeView = dataview.QueryTableView()
+        self.tradeView.setModel(self.tradedatamodel)
+        self.stackedLayout.addWidget(self.tradeView)
+
         # acct info layout
-        self.acctdatamodel = QtSql.QSqlQueryModel()
-        self.acctdatamodel.setQuery('SELECT a.acctname, a.start_date, r.rmname, m.mgtname from acct a left outer join rm r on r.id=a.rm left outer join mgt_type m on m.id=a.mgt_type')
-        self.acctdatamodel.setHeaderData(0, QtCore.Qt.Horizontal, u'账户')
-        self.acctdatamodel.setHeaderData(1, QtCore.Qt.Horizontal, u'起始日')
-        self.acctdatamodel.setHeaderData(2, QtCore.Qt.Horizontal, u'理财师')
-        self.acctdatamodel.setHeaderData(3, QtCore.Qt.Horizontal, u'管理类型')
-        self.acctInfoView = QtGui.QTableView()
-        self.acctInfoView.setSortingEnabled(True)
-        # self.acctInfoView.horizontalHeader().setSortIndicatorShown(True)
-        # self.acctInfoView.horizontalHeader().setSortIndicator(0, QtCore.Qt.DescendingOrder)
+        q2 = 'SELECT a.acctname, a.start_date, r.rmname, m.mgtname from acct a left outer join rm r on r.id=a.rm left outer join mgt_type m on m.id=a.mgt_type'
+        headers2 = [u'账户', u'起始日', u'理财师', u'管理类型']
+        self.acctdatamodel = dataview.QueryTableModel(q2, headers2)
+        self.acctInfoView = dataview.QueryTableView()
         self.acctInfoView.setModel(self.acctdatamodel)
-        self.acctInfoView.resizeColumnsToContents()
-        self.acctInfoView.resizeRowsToContents()
-        self.acctInfoView.verticalHeader().hide()
         self.stackedLayout.addWidget(self.acctInfoView)
 
         # asset pool
@@ -99,7 +96,9 @@ class FwmDesktop(QtGui.QMainWindow):
         self.stackedLayout.addWidget(self.assetPool)
 
     def switchLayout(self, itemName):
-        if itemName == Qt.QString(u'基本信息'):
+        if itemName == Qt.QString(u'交易明细'):
+            self.stackedLayout.setCurrentWidget(self.tradeView)
+        elif itemName == Qt.QString(u'基本信息'):
             self.stackedLayout.setCurrentWidget(self.acctInfoView)
         elif itemName == Qt.QString(u'产品池'):
             self.stackedLayout.setCurrentWidget(self.assetPool)
@@ -111,7 +110,20 @@ class FwmDesktop(QtGui.QMainWindow):
             pass
 
     def showCashPanel(self):
-        pass
+        from panel import CashTrade
+        ct = CashTrade(self.accts)
+        if ct.exec_():
+            from trade import Trade
+            t = Trade(ct.acct.currentText(),
+                      ct.tradeDate.date().toPyDate(),
+                      ct.tradeDate.date().toPyDate(),
+                      ct.flow.text(), u'现金', 1., float(ct.amount.text()),
+                      ct.comment.text(),
+                      order_file=False,
+                      conf_file=ct.filePath.text() or False)
+            t.toDB()
+            self.tradedatamodel.query().exec_()
+
 
     def showImportBalance(self):
         from panel import ImportBalance
@@ -187,6 +199,7 @@ class TreeControl(QtGui.QTreeWidget):
     def handleClicked(self, item):
         si = self.selectedItems()[0].text(0)
         self.clickSignal.emit(si)
+
 
 if __name__ == '__main__':
     import sys

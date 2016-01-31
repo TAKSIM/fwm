@@ -108,3 +108,43 @@ class ImportBalance(QtGui.QDialog):
     def getfile(self):
         fn = QtGui.QFileDialog.getOpenFileName(self, u'选择网银数据文件', '', 'Excel file (*.xls *.xlsx)')
         self.filename.setText(fn)
+
+
+class CashTrade(QtGui.QDialog):
+    def __init__(self, accts, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setWindowIcon(QtGui.QIcon('icons/tent.png'))
+        self.setWindowTitle(u'现金流动')
+        layout = QtGui.QGridLayout()
+        layout.addWidget(QtGui.QLabel(u'交易日'), 0, 0, 1, 1)
+        self.tradeDate = QtGui.QDateEdit(datetime.date.today())
+        self.tradeDate.setCalendarPopup(True)
+        layout.addWidget(self.tradeDate, 0, 1, 1, 1)
+        layout.addWidget(QtGui.QLabel(u'账户'), 1, 0, 1, 1)
+        self.acct = QtGui.QComboBox()
+        self.acct.addItems(accts)
+        layout.addWidget(self.acct, 1, 1, 1, 1)
+        layout.addWidget(QtGui.QLabel(u'金额'), 2, 0, 1, 1)
+        self.amount = QtGui.QLineEdit()
+        self.amount.setValidator(QtGui.QDoubleValidator(-10000000000., 10000000000, 2))
+        layout.addWidget(self.amount, 2, 1, 1, 1)
+        layout.addWidget(QtGui.QLabel(u'流水号'), 3, 0, 1, 1)
+        self.flow = QtGui.QLineEdit()
+        layout.addWidget(self.flow, 3, 1, 1, 1)
+        layout.addWidget(QtGui.QLabel(u'备注'), 4, 0, 1, 1)
+        self.comment = QtGui.QLineEdit()
+        layout.addWidget(self.comment, 4, 1, 1, 1)
+        self.fileBtn = QtGui.QPushButton(u'指令')
+        self.fileBtn.clicked.connect(self.getfile)
+        layout.addWidget(self.fileBtn, 5, 0, 1, 1)
+        self.filePath = QtGui.QLineEdit()
+        self.filePath.setEnabled(False)
+        layout.addWidget(self.filePath, 5, 1, 1, 1)
+        self.ok = QtGui.QPushButton(u'确定')
+        self.ok.clicked.connect(self.accept)
+        layout.addWidget(self.ok, 6, 1, 1, 1)
+        self.setLayout(layout)
+
+    def getfile(self):
+        fn = QtGui.QFileDialog.getOpenFileName(self, u'选择指令扫描文件', '')
+        self.filePath.setText(fn)
