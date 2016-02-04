@@ -78,17 +78,43 @@ class FwmDesktop(QtGui.QMainWindow):
         # trade detail layout
         q1 = 'SELECT BOOK, TRADE_DATE, SETTLE_DATE, PROD_ID, SHARE_CLASS, PRICE, AMOUNT, COMMENT, TRADE_ID FROM TRADE'
         headers1 = [u'账户', u'交易日', u'交割日', u'代码', u'类型', u'价格', u'数量', u'备注', u'识别码']
-        self.tradedatamodel = dataview.QueryTableModel(q1, headers1)
-        self.tradeView = dataview.QueryTableView()
+
+        self.tradedatamodel = QtSql.QSqlQueryModel()
+        self.tradedatamodel.setQuery(q1)
+        for i, h in enumerate(headers1):
+            self.tradedatamodel.setHeaderData(i, QtCore.Qt.Horizontal, h)
+
+        self.tradeView = QtGui.QTableView()
         self.tradeView.setModel(self.tradedatamodel)
+
         self.stackedLayout.addWidget(self.tradeView)
+        # TODO: Don't know why it crashes if setting different delegates
+        # df = dataview.DateFormater('yyyy-MM-dd')
+        # self.tradeView.setItemDelegateForColumn(1, df)
+        # self.tradeView.setItemDelegateForColumn(2, df)
+        nf = dataview.DoubleFormater(2, True)
+        self.tradeView.setItemDelegateForColumn(5, nf)
+        self.tradeView.setItemDelegateForColumn(6, nf)
+
+        self.tradeView.resizeColumnsToContents()
+        self.tradeView.resizeRowsToContents()
+        self.tradeView.setSortingEnabled(True)
+        self.tradeView.setSelectionBehavior(QtGui.QTableView.SelectRows)
+        self.tradeView.setMouseTracking(True)
 
         # acct info layout
         q2 = 'SELECT a.acctname, a.start_date, r.rmname, m.mgtname from acct a left outer join rm r on r.id=a.rm left outer join mgt_type m on m.id=a.mgt_type'
         headers2 = [u'账户', u'起始日', u'理财师', u'管理类型']
-        self.acctdatamodel = dataview.QueryTableModel(q2, headers2)
-        self.acctInfoView = dataview.QueryTableView()
+        self.acctdatamodel = QtSql.QSqlQueryModel()
+        self.acctdatamodel.setQuery(q2)
+        for i, h in enumerate(headers2):
+            self.acctdatamodel.setHeaderData(i, QtCore.Qt.Horizontal, h)
+
+        self.acctInfoView = QtGui.QTableView()
         self.acctInfoView.setModel(self.acctdatamodel)
+        self.acctInfoView.resizeColumnsToContents()
+        self.acctInfoView.resizeRowsToContents()
+        self.acctInfoView.setSortingEnabled(True)
         self.stackedLayout.addWidget(self.acctInfoView)
 
         # asset pool
@@ -122,7 +148,7 @@ class FwmDesktop(QtGui.QMainWindow):
                       order_file=False,
                       conf_file=ct.filePath.text() or False)
             t.toDB()
-            self.tradedatamodel.query().exec_()
+            self.tradedatamodel.refresh()
 
 
     def showImportBalance(self):
