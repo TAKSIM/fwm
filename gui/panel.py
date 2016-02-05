@@ -1,7 +1,54 @@
 # -*- coding: utf-8 -*-
 import datetime
-import time
 from PyQt4 import QtGui, QtSql, QtCore
+
+
+class CnptInfo(QtGui.QDialog):
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        layout = QtGui.QGridLayout()
+        dm = QtSql.QSqlQueryModel()
+        self.q = 'SELECT * FROM CNPT'
+        dm.setQuery(self.q)
+        dv = QtGui.QTableView()
+        header=[u'中文简称', u'中文全称', u'英文简称', u'官方网站']
+        for i, h in enumerate(header):
+            dm.setHeaderData(i, QtCore.Qt.Horizontal, h)
+        dv.setModel(dm)
+        dv.resizeRowsToContents()
+        dv.resizeColumnsToContents()
+        dv.setSortingEnabled(True)
+        dv.setSelectionBehavior(QtGui.QTableView.SelectRows)
+        layout.addWidget(dv, 0,0,1,2)
+        self.newcnpt = QtGui.QPushButton(u'添加机构')
+        self.newcnpt.clicked.connect(self.newinfo)
+        layout.addWidget(self.newcnpt,1,0,1,1)
+        self.ok = QtGui.QPushButton(u'确定')
+        self.ok.clicked.connect(self.accept)
+        layout.addWidget(self.ok,1,1,1,1)
+        self.setLayout(layout)
+
+class NewCnptInfo(QtGui.QDialog):
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setWindowTitle(u'机构信息')
+        layout = QtGui.QGridLayout()
+        layout.addWidget(QtGui.QLabel(u'机构中文全称'),0,0,1,1)
+        self.name_full_cn = QtGui.QLineEdit()
+        layout.addWidget(self.name_full_cn, 0, 1, 1, 1)
+        layout.addWidget(QtGui.QLabel(u'机构中文简称'), 1, 0, 1, 1)
+        self.name_short_cn = QtGui.QLineEdit()
+        layout.addWidget(self.name_short_en, 1, 1, 1, 1)
+        layout.addWidget(QtGui.QLabel(u'机构英文简称'), 2, 0, 1, 1)
+        self.name_short_en = QtGui.QLineEdit()
+        layout.addWidget(self.name_short_en, 2, 1, 1, 1)
+        self.ok = QtGui.QPushButton(u'确定')
+        self.ok.clicked.connect(self.accept)
+        layout.addWidget(self.ok, 3, 1, 1, 1)
+        self.cancel = QtGui.QPushButton(u'取消')
+        self.cancel.clicked.connect(self.close)
+        layout.addWidget(self.cancel, 3, 0, 1, 1)
+        self.setLayout(layout)
 
 
 class CompanyInfo(QtGui.QDialog):

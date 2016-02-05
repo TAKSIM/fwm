@@ -49,13 +49,12 @@ class FwmDesktop(QtGui.QMainWindow):
         self.loadAccounts()
         self.loadHolidays()
         self.loadTrades()
-        self.loadCompInfo()
+        self.loadFirmInfo()
 
     def createMenu(self):
         self.mb = self.menuBar()
         m1 = self.mb.addMenu(u'&系统')
         m1.addAction(self.rbAction)
-        m1.addAction(self.rptAction)
         m1.addAction(self.holAction)
         m1.addAction(self.exitAction)
 
@@ -67,7 +66,6 @@ class FwmDesktop(QtGui.QMainWindow):
 
     def createAction(self):
         self.rbAction = QtGui.QAction(QtGui.QIcon(r'icons/balance.png'), u'导入网银数据', self, shortcut='Ctrl+W', triggered=self.showImportBalance)
-        self.rptAction = QtGui.QAction(QtGui.QIcon(r'icons/rpt.png'), u'银监报备表头', self, triggered=self.showRptPanel)
         self.holAction = QtGui.QAction(QtGui.QIcon(r'icons/settings.png'), u'假期设置', self, shortcut='Ctrl+J', triggered=self.showHolidayPanel)
         self.exitAction = QtGui.QAction(QtGui.QIcon(r'icons/exit.png'), u'退出', self, triggered=QtGui.qApp.quit)
 
@@ -125,7 +123,21 @@ class FwmDesktop(QtGui.QMainWindow):
         self.stackedLayout.addWidget(self.acctInfoView)
 
         # asset pool
-        self.assetPool = QtGui.QLabel(u'资产池')
+        self.assetPool = QtGui.QWidget()
+        apLayout = QtGui.QVBoxLayout()
+        apBtnLayout = QtGui.QHBoxLayout()
+        cbrcRptBtn = QtGui.QPushButton(u'银监报备表头')
+        cbrcRptBtn.clicked.connect(self.showRptPanel)
+        apBtnLayout.addWidget(cbrcRptBtn)
+        newCnpt = QtGui.QPushButton(u'添加发行人信息')
+        apBtnLayout.addWidget(newCnpt)
+        newProducts = QtGui.QPushButton(u'添加产品')
+        apBtnLayout.addWidget(newProducts)
+        apLayout.addLayout(apBtnLayout)
+
+        self.prodView = QtGui.QTableView()
+        apLayout.addWidget(self.prodView)
+        self.assetPool.setLayout(apLayout)
         self.stackedLayout.addWidget(self.assetPool)
 
     def switchLayout(self, itemName):
@@ -203,7 +215,7 @@ class FwmDesktop(QtGui.QMainWindow):
     def loadTrades(self):
         self.balance = {}
 
-    def loadCompInfo(self):
+    def loadFirmInfo(self):
         q = QtSql.QSqlQuery("SELECT MAX(RPTDATE), NETASSET_LASTMONTH, NETCAP_LASTQUAT, AUM_LASTMONTH, RISKCAP_LASTQUAT FROM FIRMINFO WHERE RPTDATE<='%s'" % (self.td))
         while q.next(): # should be only one record
             self.cbrcRptDate = q.value(0).toDate().toPyDate()
