@@ -3,7 +3,7 @@ import hashlib
 from PyQt4 import QtSql
 
 class Trade:
-    def __init__(self, book, tradeDate, settleDate, prodID, shareClass, price, amount, comment='', order_file=False, conf_file=False, tradeID = None):
+    def __init__(self, book, tradeDate, settleDate, prodID, shareClass, price, amount, amtcoll=0., comment='', order_file=False, conf_file=False, tradeID = None):
         self.book = book
         self.tradeDate = tradeDate
         self.settleDate = settleDate
@@ -12,6 +12,7 @@ class Trade:
         self.price = price
         self.comment = comment
         self.amount = amount
+        self.amtcoll = amtcoll
         self.order_file = order_file
         self.conf_file = conf_file
         if tradeID:
@@ -24,15 +25,15 @@ class Trade:
 
     @staticmethod
     def fromDB(record):
-        tradeID, book, tradeDate, settleDate, prodID, shareClass, price, amount, comment, order_file, conf_file = record
-        t = Trade(book, tradeDate, settleDate, prodID, shareClass, price, amount, comment, order_file=bool(order_file), conf_file=bool(conf_file),tradeID=tradeID)
+        tradeID, book, tradeDate, settleDate, prodID, shareClass, price, amount, amtcoll, comment, order_file, conf_file = record
+        t = Trade(book, tradeDate, settleDate, prodID, shareClass, price, amount, amtcoll, comment, order_file=bool(order_file), conf_file=bool(conf_file),tradeID=tradeID)
         return t
 
     def toDB(self):
         try:
             q = QtSql.QSqlQuery()
-            q.exec_("""INSERT INTO TRADE VALUES ('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')""" % (
-                self.tradeID, self.book, self.tradeDate, self.settleDate, self.prodID, self.shareClass, self.price, self.amount, self.comment, self.order_file, self.conf_file))
+            q.exec_("""INSERT INTO TRADE VALUES ('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s', '%s')""" % (
+                self.tradeID, self.book, self.tradeDate, self.settleDate, self.prodID, self.shareClass, self.price, self.amount, self.amtcoll, self.comment, self.order_file, self.conf_file))
             QtSql.QSqlDatabase().commit()
         except Exception, e:
             print e.message

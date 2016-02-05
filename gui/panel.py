@@ -1,6 +1,94 @@
 # -*- coding: utf-8 -*-
 import datetime
+import time
 from PyQt4 import QtGui, QtSql, QtCore
+
+
+class CompanyInfo(QtGui.QDialog):
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setWindowIcon(QtGui.QIcon('icons/tent.png'))
+        self.setWindowTitle(u'公司基础信息（银监报备使用）')
+        self.setFixedSize(450, 150)
+        self.q = 'SELECT * FROM FIRMINFO'
+        layout = QtGui.QVBoxLayout()
+        self.ci = QtSql.QSqlQueryModel()
+        self.ci.setQuery(self.q)
+        header = [u'报告日期', u'上月末净资产', u'上季末净资本', u'上月末信托总资产', u'上季末风险资本']
+        for i, h in enumerate(header):
+            self.ci.setHeaderData(i, QtCore.Qt.Horizontal, h)
+        self.civ = QtGui.QTableView()
+        self.civ.setModel(self.ci)
+        self.civ.setUpdatesEnabled(True)
+        self.civ.resizeColumnsToContents()
+        self.civ.resizeRowsToContents()
+        self.civ.verticalHeader().hide()
+        self.civ.setSelectionBehavior(QtGui.QTableView.SelectRows)
+        layout.addWidget(self.civ)
+
+        btOK = QtGui.QPushButton(u'确定')
+        btOK.clicked.connect(self.accept)
+        btCancel = QtGui.QPushButton(u'取消')
+        btCancel.clicked.connect(self.close)
+        btNew = QtGui.QPushButton(u'添加数据')
+        btNew.clicked.connect(self.newrpt)
+        btLayout = QtGui.QHBoxLayout()
+        btLayout.addWidget(btNew)
+        btLayout.addWidget(btCancel)
+        btLayout.addWidget(btOK)
+        layout.addLayout(btLayout)
+        self.setLayout(layout)
+
+    def newrpt(self):
+        nci = NewCompInfo()
+        if nci.exec_():
+            rptDate = nci.rptDate.date().toPyDate()
+            netasset_lm = nci.netasset_lm.text().toDouble()[0]
+            netcap_lq = nci.netcap_lq.text().toDouble()[0]
+            aum_lm = nci.aum_lm.text().toDouble()[0]
+            riskcap_lq = nci.riskcap_lq.text().toDouble()[0]
+            q = QtSql.QSqlQuery()
+            try:
+                q.exec_("""INSERT INTO FIRMINFO VALUES ('%s','%s','%s','%s','%s')""" % (rptDate, netasset_lm, netcap_lq, aum_lm, riskcap_lq))
+                QtSql.QSqlDatabase().commit()
+                self.ci.setQuery(self.q)
+            except Exception, e:
+                print e.message
+                QtSql.QSqlDatabase().rollback()
+
+
+class NewCompInfo(QtGui.QDialog):
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        layout = QtGui.QGridLayout()
+        layout.addWidget(QtGui.QLabel(u'报告日期'),0,0,1,1)
+        td = datetime.date.today()
+        self.rptDate = QtGui.QDateEdit(datetime.date(td.year, td.month, 1))
+        layout.addWidget(self.rptDate,0,1,1,1)
+        layout.addWidget(QtGui.QLabel(u'上月末净资产（亿元）'),1,0,1,1)
+        self.netasset_lm = QtGui.QLineEdit()
+        self.netasset_lm.setValidator(QtGui.QDoubleValidator())
+        layout.addWidget(self.netasset_lm, 1,1,1,1)
+        layout.addWidget(QtGui.QLabel(u'上季末净资本（亿元）'),2,0,1,1)
+        self.netcap_lq = QtGui.QLineEdit()
+        self.netcap_lq.setValidator(QtGui.QDoubleValidator())
+        layout.addWidget(self.netcap_lq, 2,1,1,1)
+        layout.addWidget(QtGui.QLabel(u'上月末信托总资产（亿元）'),3,0,1,1)
+        self.aum_lm = QtGui.QLineEdit()
+        self.aum_lm.setValidator(QtGui.QDoubleValidator())
+        layout.addWidget(self.aum_lm, 3,1,1,1)
+        layout.addWidget(QtGui.QLabel(u'上季末风险资本'),4,0,1,1)
+        self.riskcap_lq = QtGui.QLineEdit()
+        self.riskcap_lq.setValidator(QtGui.QDoubleValidator())
+        layout.addWidget(self.riskcap_lq, 4,1,1,1)
+        self.cancel = QtGui.QPushButton(u'取消')
+        self.cancel.clicked.connect(self.close)
+        layout.addWidget(self.cancel, 5,0,1,1)
+        self.ok = QtGui.QPushButton(u'确定')
+        self.ok.clicked.connect(self.accept)
+        layout.addWidget(self.ok, 5,1,1,1)
+        self.setLayout(layout)
+
 
 class HolidayPanel(QtGui.QDialog):
     def __init__(self, parent=None):

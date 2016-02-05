@@ -2,11 +2,14 @@
 from login import LoginPage
 from user import User
 from PyQt4 import Qt, QtGui, QtCore, QtSql
+import datetime
 import dataview
 
+
 class FwmDesktop(QtGui.QMainWindow):
-    def __init__(self):
+    def __init__(self, td=None):
         QtGui.QMainWindow.__init__(self)
+        self.td = td or datetime.date.today()
         self.initDB()
         login = LoginPage()
         if login.exec_():
@@ -46,11 +49,13 @@ class FwmDesktop(QtGui.QMainWindow):
         self.loadAccounts()
         self.loadHolidays()
         self.loadTrades()
+        self.loadCompInfo()
 
     def createMenu(self):
         self.mb = self.menuBar()
         m1 = self.mb.addMenu(u'&系统')
         m1.addAction(self.rbAction)
+        m1.addAction(self.rptAction)
         m1.addAction(self.holAction)
         m1.addAction(self.exitAction)
 
@@ -62,8 +67,10 @@ class FwmDesktop(QtGui.QMainWindow):
 
     def createAction(self):
         self.rbAction = QtGui.QAction(QtGui.QIcon(r'icons/balance.png'), u'导入网银数据', self, shortcut='Ctrl+W', triggered=self.showImportBalance)
-        self.exitAction = QtGui.QAction(QtGui.QIcon(r'icons\exit.png'), u'退出', self, triggered=QtGui.qApp.quit)
-        self.holAction = QtGui.QAction(QtGui.QIcon(r'icons\settings.png'), u'假期设置', self, shortcut='Ctrl+J', triggered=self.showHolidayPanel)
+        self.rptAction = QtGui.QAction(QtGui.QIcon(r'icons/rpt.png'), u'银监报备表头', self, triggered=self.showRptPanel)
+        self.holAction = QtGui.QAction(QtGui.QIcon(r'icons/settings.png'), u'假期设置', self, shortcut='Ctrl+J', triggered=self.showHolidayPanel)
+        self.exitAction = QtGui.QAction(QtGui.QIcon(r'icons/exit.png'), u'退出', self, triggered=QtGui.qApp.quit)
+
 
         self.addCash = QtGui.QAction(u'现金', self, shortcut='Ctrl+X', triggered=self.showCashPanel)
 
@@ -135,6 +142,12 @@ class FwmDesktop(QtGui.QMainWindow):
         if hol.exec_():
             pass
 
+    def showRptPanel(self):
+        from panel import CompanyInfo
+        ci = CompanyInfo()
+        if ci.exec_():
+            pass
+
     def showCashPanel(self):
         from panel import CashTrade
         ct = CashTrade(self.accts)
@@ -148,7 +161,7 @@ class FwmDesktop(QtGui.QMainWindow):
                       order_file=False,
                       conf_file=ct.filePath.text() or False)
             t.toDB()
-            self.tradedatamodel.refresh()
+            self.tradedatamodel.query().exec_()
 
 
     def showImportBalance(self):
@@ -190,6 +203,14 @@ class FwmDesktop(QtGui.QMainWindow):
     def loadTrades(self):
         self.balance = {}
 
+    def loadCompInfo(self):
+        q = QtSql.QSqlQuery("SELECT MAX(RPTDATE), NETASSET_LASTMONTH, NETCAP_LASTQUAT, AUM_LASTMONTH, RISKCAP_LASTQUAT FROM FIRMINFO WHERE RPTDATE<='%s'" % (self.td))
+        while q.next(): # should be only one record
+            self.cbrcRptDate = q.value(0).toDate().toPyDate()
+            self.netasset_lm = q.value(1).toDouble()[0]
+            self.netcap_lq = q.value(2).toDouble()[0]
+            self.aum_lm = q.value(3).toDouble()[0]
+            self.riskcap_lq = q.value(4).toDouble()[0]
 
 class TreeControl(QtGui.QTreeWidget):
     clickSignal = QtCore.pyqtSignal(str)
