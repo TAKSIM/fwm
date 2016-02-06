@@ -129,9 +129,11 @@ class FwmDesktop(QtGui.QMainWindow):
         cbrcRptBtn = QtGui.QPushButton(u'银监报备表头')
         cbrcRptBtn.clicked.connect(self.showRptPanel)
         apBtnLayout.addWidget(cbrcRptBtn)
-        newCnpt = QtGui.QPushButton(u'添加发行人信息')
+        newCnpt = QtGui.QPushButton(u'发行人信息')
+        newCnpt.clicked.connect(self.showCnptPanel)
         apBtnLayout.addWidget(newCnpt)
         newProducts = QtGui.QPushButton(u'添加产品')
+        newProducts.clicked.connect(self.showNewProdDiag)
         apBtnLayout.addWidget(newProducts)
         apLayout.addLayout(apBtnLayout)
 
@@ -147,6 +149,22 @@ class FwmDesktop(QtGui.QMainWindow):
             self.stackedLayout.setCurrentWidget(self.acctInfoView)
         elif itemName == Qt.QString(u'产品池'):
             self.stackedLayout.setCurrentWidget(self.assetPool)
+
+    def showNewProdDiag(self):
+        from diag_product import NewProductDialog
+        npd = NewProductDialog()
+        if npd.exec_():
+            prodid = npd.code.text()
+            issuer = npd.issuer.currentText()
+            shareclass = npd.shareclass.text()
+            windcode = npd.windcode.text()
+
+
+    def showCnptPanel(self):
+        from panel import CnptInfo
+        ci = CnptInfo()
+        if ci.exec_():
+            pass
 
     def showHolidayPanel(self):
         from panel import HolidayPanel

@@ -6,6 +6,8 @@ from PyQt4 import QtGui, QtSql, QtCore
 class CnptInfo(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
+        self.setWindowTitle(u'机构信息')
+        self.setFixedWidth(400)
         layout = QtGui.QGridLayout()
         dm = QtSql.QSqlQueryModel()
         self.q = 'SELECT * FROM CNPT'
@@ -19,35 +21,60 @@ class CnptInfo(QtGui.QDialog):
         dv.resizeColumnsToContents()
         dv.setSortingEnabled(True)
         dv.setSelectionBehavior(QtGui.QTableView.SelectRows)
-        layout.addWidget(dv, 0,0,1,2)
+        dv.verticalHeader().hide()
+
+        layout.addWidget(dv, 0, 0, 1, 2)
         self.newcnpt = QtGui.QPushButton(u'添加机构')
         self.newcnpt.clicked.connect(self.newinfo)
-        layout.addWidget(self.newcnpt,1,0,1,1)
+        layout.addWidget(self.newcnpt, 1, 0, 1, 1)
         self.ok = QtGui.QPushButton(u'确定')
         self.ok.clicked.connect(self.accept)
-        layout.addWidget(self.ok,1,1,1,1)
+        layout.addWidget(self.ok, 1, 1, 1, 1)
         self.setLayout(layout)
+
+    def newinfo(self):
+        ni = NewCnptInfo()
+        if ni.exec_():
+            name_full_cn = ni.name_full_cn.text()
+            name_short_cn = ni.name_short_cn.text()
+            name_short_en = ni.name_short_en.text()
+            website = ni.website.text()
+            q = QtSql.QSqlQuery()
+            try:
+                q.exec_("""INSERT INTO CNPT VALUES ('%s','%s','%s','%s')""" % (name_short_cn, name_full_cn, name_short_en, website))
+                QtSql.QSqlDatabase().commit()
+                self.dm.setQuery(self.q)
+            except Exception, e:
+                print e.message
+                QtSql.QSqlDatabase().rollback()
 
 class NewCnptInfo(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.setWindowTitle(u'机构信息')
         layout = QtGui.QGridLayout()
-        layout.addWidget(QtGui.QLabel(u'机构中文全称'),0,0,1,1)
+        layout.addWidget(QtGui.QLabel(u'机构中文全称'),0, 0, 1, 1)
         self.name_full_cn = QtGui.QLineEdit()
         layout.addWidget(self.name_full_cn, 0, 1, 1, 1)
         layout.addWidget(QtGui.QLabel(u'机构中文简称'), 1, 0, 1, 1)
         self.name_short_cn = QtGui.QLineEdit()
-        layout.addWidget(self.name_short_en, 1, 1, 1, 1)
+        layout.addWidget(self.name_short_cn, 1, 1, 1, 1)
         layout.addWidget(QtGui.QLabel(u'机构英文简称'), 2, 0, 1, 1)
         self.name_short_en = QtGui.QLineEdit()
         layout.addWidget(self.name_short_en, 2, 1, 1, 1)
-        self.ok = QtGui.QPushButton(u'确定')
-        self.ok.clicked.connect(self.accept)
-        layout.addWidget(self.ok, 3, 1, 1, 1)
+        layout.addWidget(QtGui.QLabel(u'官方网站'),3, 0, 1, 1)
+        self.website = QtGui.QLineEdit()
+        layout.addWidget(self.website, 3, 1, 1, 1)
+
+        btLayout = QtGui.QHBoxLayout()
         self.cancel = QtGui.QPushButton(u'取消')
         self.cancel.clicked.connect(self.close)
-        layout.addWidget(self.cancel, 3, 0, 1, 1)
+        btLayout.addWidget(self.cancel)
+        self.ok = QtGui.QPushButton(u'确定')
+        self.ok.clicked.connect(self.accept)
+        btLayout.addWidget(self.ok)
+        layout.addLayout(btLayout, 4, 0, 1, 2)
+
         self.setLayout(layout)
 
 
