@@ -7,6 +7,7 @@ class CnptInfo(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.setWindowTitle(u'机构信息')
+        self.setWindowIcon(QtGui.QIcon('icon/main.png'))
         self.setFixedWidth(400)
         layout = QtGui.QGridLayout()
         dm = QtSql.QSqlQueryModel()
@@ -52,6 +53,7 @@ class NewCnptInfo(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.setWindowTitle(u'机构信息')
+        self.setWindowIcon(QtGui.QIcon('icon/main.png'))
         layout = QtGui.QGridLayout()
         layout.addWidget(QtGui.QLabel(u'机构中文全称'),0, 0, 1, 1)
         self.name_full_cn = QtGui.QLineEdit()
@@ -81,7 +83,7 @@ class NewCnptInfo(QtGui.QDialog):
 class CompanyInfo(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
-        self.setWindowIcon(QtGui.QIcon('icons/tent.png'))
+        self.setWindowIcon(QtGui.QIcon('icon/main.png'))
         self.setWindowTitle(u'公司基础信息（银监报备使用）')
         self.setFixedSize(450, 150)
         self.q = 'SELECT * FROM FIRMINFO'
@@ -134,6 +136,7 @@ class CompanyInfo(QtGui.QDialog):
 class NewCompInfo(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
+        self.setWindowIcon(QtGui.QIcon('icon/main.png'))
         layout = QtGui.QGridLayout()
         layout.addWidget(QtGui.QLabel(u'报告日期'),0,0,1,1)
         td = datetime.date.today()
@@ -168,6 +171,7 @@ class HolidayPanel(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.setWindowTitle(u'假期设置')
+        self.setWindowIcon(QtGui.QIcon('icon/main.png'))
         self.setWindowIcon(QtGui.QIcon('icons/tent.png'))
         self.setMaximumWidth(200)
         layout = QtGui.QVBoxLayout()
@@ -220,7 +224,7 @@ class HolidayPanel(QtGui.QDialog):
 class NewHolPanel(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
-        self.setWindowIcon(QtGui.QIcon('icons/tent.png'))
+        self.setWindowIcon(QtGui.QIcon('icon/main.png'))
         self.setWindowTitle(u'新增假期')
         layout = QtGui.QGridLayout()
         layout.addWidget(QtGui.QLabel(u'日期'),0,0,1,1)
@@ -248,7 +252,7 @@ class NewHolPanel(QtGui.QDialog):
 class ImportBalance(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
-        self.setWindowIcon(QtGui.QIcon('icons/tent.png'))
+        self.setWindowIcon(QtGui.QIcon('icon/main.png'))
         self.setWindowTitle(u'导入网银数据')
         layout = QtGui.QGridLayout()
         layout.addWidget(QtGui.QLabel(u'银行'),0,0,1,1)
@@ -275,7 +279,7 @@ class ImportBalance(QtGui.QDialog):
 class CashTrade(QtGui.QDialog):
     def __init__(self, accts, parent=None):
         QtGui.QDialog.__init__(self, parent)
-        self.setWindowIcon(QtGui.QIcon('icons/tent.png'))
+        self.setWindowIcon(QtGui.QIcon('icon/main.png'))
         self.setWindowTitle(u'现金流动')
         layout = QtGui.QGridLayout()
         layout.addWidget(QtGui.QLabel(u'交易日'), 0, 0, 1, 1)

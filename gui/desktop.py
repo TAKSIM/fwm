@@ -4,7 +4,10 @@ from user import User
 from PyQt4 import Qt, QtGui, QtCore, QtSql
 import datetime
 import dataview
+from settings import ColorBackground, ColorHighlightText, ColorBackgroundLight
 
+import ctypes
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('myappid')
 
 class FwmDesktop(QtGui.QMainWindow):
     def __init__(self, td=None):
@@ -19,6 +22,11 @@ class FwmDesktop(QtGui.QMainWindow):
             self.createMenu()
             self.createPageWidgets()
 
+            p = QtGui.QPalette()
+            p.setColor(p.Background, ColorBackground)
+            p.setColor(p.WindowText, ColorHighlightText)
+            self.setPalette(p)
+
             layout = QtGui.QHBoxLayout()
             self.centralWidget = QtGui.QWidget()
             self.centralWidget.setLayout(layout)
@@ -30,6 +38,8 @@ class FwmDesktop(QtGui.QMainWindow):
 
             self.resize(800, 600)
             self.setWindowTitle(u'家族信托投资管理平台 - {0}'.format(self.user.name))
+            self.setWindowIcon(QtGui.QIcon(r'icon/main.png'))
+
             self.statusBar().showMessage(u'准备就绪')
             self.show()
         else:
@@ -91,6 +101,7 @@ class FwmDesktop(QtGui.QMainWindow):
 
         self.tradeView = QtGui.QTableView()
         self.tradeView.setModel(self.tradedatamodel)
+        self.tradeView.verticalHeader().hide()
 
         self.stackedLayout.addWidget(self.tradeView)
         # TODO: Don't know why it crashes if setting different delegates
@@ -120,6 +131,7 @@ class FwmDesktop(QtGui.QMainWindow):
         self.acctInfoView.resizeColumnsToContents()
         self.acctInfoView.resizeRowsToContents()
         self.acctInfoView.setSortingEnabled(True)
+        self.acctInfoView.verticalHeader().hide()
         self.stackedLayout.addWidget(self.acctInfoView)
 
         # asset pool
@@ -250,6 +262,10 @@ class TreeControl(QtGui.QTreeWidget):
         self.addItems(self.invisibleRootItem())
         self.itemClicked.connect(self.handleClicked)
         self.setMaximumWidth(120)
+        p = QtGui.QPalette()
+        p.setColor(p.Window, ColorBackgroundLight)
+        p.setColor(p.WindowText, ColorHighlightText)
+        self.setPalette(p)
 
     def addItems(self, parent):
         trades_item = self.addParent(parent, u'资产' )

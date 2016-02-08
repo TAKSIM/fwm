@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui
 from user import User
+from settings import ColorBackground, ColorHighlightText
 
 class LoginPage(QtGui.QDialog):
 
     def __init__(self):
         QtGui.QDialog.__init__(self)
         self.setWindowTitle(u'系统登录')
-        self.setWindowIcon(QtGui.QIcon(u'icons\login.png'))
+        self.setWindowIcon(QtGui.QIcon('icon/login.png'))
         self.setFixedSize(180,120)
+        p = QtGui.QPalette()
+        p.setColor(p.Background, ColorBackground)
+        p.setColor(p.WindowText, ColorHighlightText)
+        self.setPalette(p)
 
         layout = QtGui.QVBoxLayout()
         inputLayout = QtGui.QHBoxLayout()
@@ -38,7 +43,8 @@ class LoginPage(QtGui.QDialog):
         btLayout.addWidget(self.btReset)
         layout.addLayout(btLayout)
 
-        self.status = QtGui.QLabel()
+        self.status = QtGui.QLabel(u'首次使用时请先重置密码')
+        self.status.setPalette(p)
         layout.addWidget(self.status)
 
         self.setLayout(layout)
